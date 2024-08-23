@@ -1,15 +1,42 @@
-import PyPDF2
+from PyPDF2 import PdfReader
 
-def extract_text_from_pdf(pdf_path):
-    text = ""
-    with open(pdf_path, "rb") as file:
-        pdf_reader = PyPDF2.PdfFileReader(file)
-        for page_num in range(pdf_reader.numPages):
-            page = pdf_reader.getPage(page_num)
-            text += page.extract_text()
-    return text
 
-# Example usage:
-pdf_path = 'your_file.pdf'
-raw_text = extract_text_from_pdf(pdf_path)
-print(raw_text)
+def get_lines(filename):
+    reader = PdfReader(filename)
+    all_page_lines = []
+    for page in reader.pages:
+        page_text = page.extract_text()
+        page_lines = page_text.split("\n")
+        all_page_lines += page_lines[2:]
+    return all_page_lines
+
+
+def format_desc_to_abbrv(full_defs):
+    resp = {}
+    for row in full_defs:
+        desc, abbrv = row.split(" ")
+        resp[desc] = abbrv
+    return resp
+
+
+def format_abbrv_to_desc(full_defs):
+    resp = {}
+    for row in full_defs:
+        desc, abbrv = row.split(" ")
+        resp[abbrv] = desc
+    return resp
+
+
+definitions = get_lines("XML_Tags.pdf")
+
+
+counts = {}
+for key, value in format_desc_to_abbrv(definitions).items():
+    if value in counts:
+        counts[value] += [key]
+    else:
+        counts[value] = [key]
+
+for abbrv, counted in counts.items():
+    if len(counted) > 1:
+        print(abbrv, counted)
